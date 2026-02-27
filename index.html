@@ -1,137 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MRCP Part 1 Study Planner</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta charset="UTF-8" />
+<title>MRCP Part 1 Smart Planner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
-  padding: 20px;
-}
-h1 { color: #1e3a8a; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-}
-th, td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-th {
-  background: #1e3a8a;
-  color: white;
-}
-.completed {
-  background: #d1fae5;
-}
-.delayed {
-  background: #fee2e2;
-  color: #991b1b;
-  font-weight: bold;
-}
-button {
-  padding: 6px 10px;
-  cursor: pointer;
-}
-.resources a {
-  margin-right: 15px;
-}
+body { font-family: Arial, sans-serif; background:#f4f7fb; padding:20px; }
+h1, h2 { color:#003366; }
+.card { background:#fff; padding:15px; border-radius:8px; margin-bottom:15px; }
+input[type="date"] { padding:5px; }
+button { padding:6px 10px; margin-left:5px; cursor:pointer; }
+.completed { color:green; font-weight:bold; }
+.overdue { color:red; font-weight:bold; }
+a { color:#0066cc; text-decoration:none; }
+.small { font-size:14px; }
 </style>
 </head>
 
 <body>
 
-<h1>📘 MRCP Part 1 Study Planner</h1>
+<h1>📘 MRCP Part 1 Study & Practice Planner</h1>
 
-<div class="resources">
-  <strong>Resources:</strong>
-  <a href="https://passmedicine.com" target="_blank">Passmedicine</a>
-  <a href="https://pastest.com" target="_blank">Pastest</a>
-  <a href="https://onexamination.com" target="_blank">BMJ OnExamination</a>
-  <a href="https://www.mrcpuk.org" target="_blank">MRCP UK</a>
+<!-- MILESTONES -->
+<div class="card">
+<h2>🎯 Key Milestones</h2>
+<ul id="milestones"></ul>
 </div>
 
-<br>
-
-<table id="planner">
-<thead>
-<tr>
-  <th>Topic</th>
-  <th>Target Date</th>
-  <th>Status</th>
-  <th>Completed On</th>
-  <th>Action</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
+<!-- STUDY PLAN -->
+<div class="card">
+<h2>📚 Topic-wise Study Plan</h2>
+<div id="topics"></div>
+</div>
 
 <script>
-const topics = [
-  "Cardiology",
-  "Respiratory",
-  "Gastroenterology",
-  "Neurology",
-  "Endocrinology",
-  "Renal & Electrolytes",
-  "Hematology",
-  "Infectious Diseases",
-  "Statistics & Ethics"
+const milestones = [
+  { name: "Create MRCP UK Account", date: "2026-05-01", link:"https://www.mrcpuk.org/mrcpuk-examinations/part-1" },
+  { name: "Register & Pay for Exam", date: "2026-06-01" },
+  { name: "MRCP Part 1 Exam", date: "2026-09-15" },
+  { name: "Expected Result Window", date: "2026-10-10" }
 ];
 
-const tbody = document.querySelector("tbody");
+const topics = [
+  {
+    name: "Cardiology",
+    deadline: "2026-06-15",
+    sections: [
+      {
+        name: "Theory",
+        resources: [
+          { name:"Oxford Handbook of Medicine", link:"https://global.oup.com/academic/product/oxford-handbook-of-medicine-9780198830574" },
+          { name:"ESC Guidelines", link:"https://www.escardio.org/Guidelines" }
+        ]
+      },
+      {
+        name: "MCQs",
+        resources: [
+          { name:"Passmedicine Cardiology", link:"https://passmedicine.com/mrcp/" },
+          { name:"Pastest", link:"https://pastest.com" }
+        ]
+      },
+      {
+        name: "Revision",
+        resources: [
+          { name:"Zero to Finals (YouTube)", link:"https://www.youtube.com/c/ZeroToFinals" },
+          { name:"BMJ Best Practice", link:"https://bestpractice.bmj.com" }
+        ]
+      }
+    ]
+  },
 
-function loadData() {
-  tbody.innerHTML = "";
-  const data = JSON.parse(localStorage.getItem("mrcpPlan")) || {};
+  {
+    name: "Respiratory Medicine",
+    deadline: "2026-07-10",
+    sections: [
+      {
+        name: "Theory",
+        resources: [
+          { name:"BTS Guidelines", link:"https://www.brit-thoracic.org.uk/quality-improvement/guidelines/" }
+        ]
+      },
+      {
+        name: "MCQs",
+        resources: [
+          { name:"Passmedicine Respiratory", link:"https://passmedicine.com/mrcp/" }
+        ]
+      },
+      {
+        name: "Revision",
+        resources: [
+          { name:"Pastest Rapid Review", link:"https://pastest.com" }
+        ]
+      }
+    ]
+  }
+];
 
-  topics.forEach(topic => {
-    const row = document.createElement("tr");
-
-    const target = data[topic]?.target || "";
-    const completed = data[topic]?.completed || "";
-    const isCompleted = !!completed;
-    const isDelayed = !isCompleted && target && new Date() > new Date(target);
-
-    if (isCompleted) row.classList.add("completed");
-    if (isDelayed) row.classList.add("delayed");
-
-    row.innerHTML = `
-      <td>${topic}</td>
-      <td><input type="date" value="${target}" onchange="setTarget('${topic}', this.value)"></td>
-      <td>${isCompleted ? "✅ Completed" : isDelayed ? "🚩 Delayed" : "⏳ Pending"}</td>
-      <td>${completed || "-"}</td>
-      <td>
-        ${!isCompleted ? `<button onclick="markComplete('${topic}')">Mark Complete</button>` : ""}
-      </td>
-    `;
-
-    tbody.appendChild(row);
+function renderMilestones() {
+  const ul = document.getElementById("milestones");
+  milestones.forEach(m => {
+    const li = document.createElement("li");
+    li.innerHTML = `${m.name} – <b>${m.date}</b> 
+      ${m.link ? `(<a href="${m.link}" target="_blank">link</a>)` : ""}`;
+    ul.appendChild(li);
   });
 }
 
-function setTarget(topic, date) {
-  const data = JSON.parse(localStorage.getItem("mrcpPlan")) || {};
-  data[topic] = data[topic] || {};
-  data[topic].target = date;
-  localStorage.setItem("mrcpPlan", JSON.stringify(data));
-  loadData();
+function renderTopics() {
+  const container = document.getElementById("topics");
+
+  topics.forEach(topic => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const today = new Date().toISOString().slice(0,10);
+    const statusClass = today > topic.deadline ? "overdue" : "completed";
+
+    card.innerHTML = `
+      <h3>${topic.name} 
+      <span class="${statusClass} small">(Target: ${topic.deadline})</span></h3>
+    `;
+
+    topic.sections.forEach(sec => {
+      const secDiv = document.createElement("div");
+      secDiv.innerHTML = `<h4>${sec.name}</h4>`;
+
+      sec.resources.forEach(res => {
+        const id = topic.name + sec.name + res.name;
+        secDiv.innerHTML += `
+          <div>
+            <input type="checkbox" onchange="saveProgress('${id}')">
+            <a href="${res.link}" target="_blank">${res.name}</a>
+            <span id="${id}" class="small"></span>
+          </div>`;
+      });
+
+      card.appendChild(secDiv);
+    });
+
+    container.appendChild(card);
+  });
 }
 
-function markComplete(topic) {
-  const data = JSON.parse(localStorage.getItem("mrcpPlan")) || {};
-  data[topic] = data[topic] || {};
-  data[topic].completed = new Date().toISOString().split("T")[0];
-  localStorage.setItem("mrcpPlan", JSON.stringify(data));
-  loadData();
+function saveProgress(id) {
+  const date = new Date().toISOString().slice(0,10);
+  localStorage.setItem(id, date);
+  document.getElementById(id).innerText = `✔ Completed on ${date}`;
 }
 
-loadData();
+renderMilestones();
+renderTopics();
 </script>
 
 </body>
