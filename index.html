@@ -1,155 +1,721 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>MRCP Part 1 Smart Planner</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MRCP(UK) Personal Planner &amp; Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-body { font-family: Arial, sans-serif; background:#f4f7fb; padding:20px; }
-h1, h2 { color:#003366; }
-.card { background:#fff; padding:15px; border-radius:8px; margin-bottom:15px; }
-input[type="date"] { padding:5px; }
-button { padding:6px 10px; margin-left:5px; cursor:pointer; }
-.completed { color:green; font-weight:bold; }
-.overdue { color:red; font-weight:bold; }
-a { color:#0066cc; text-decoration:none; }
-.small { font-size:14px; }
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;--surface3:#21262d;
+  --border:#30363d;--border2:#3d444d;
+  --gold:#c9a84c;--gold-dim:rgba(201,168,76,0.15);
+  --red:#f85149;--red-dim:rgba(248,81,73,0.15);
+  --green:#3fb950;--green-dim:rgba(63,185,80,0.15);
+  --amber:#d29922;--amber-dim:rgba(210,153,34,0.15);
+  --blue:#58a6ff;--blue-dim:rgba(88,166,255,0.12);
+  --text:#e6edf3;--text-mid:#8b949e;--text-dim:#484f58;
+  --radius:8px;--radius-sm:5px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:200;}
+.logo{font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);font-size:1.15rem;}
+.logo span{color:var(--text-mid);font-size:0.75rem;font-family:'DM Mono',monospace;font-weight:400;margin-left:0.5rem;}
+#countdown-bar{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text-mid);display:flex;gap:1.2rem;}
+.cd-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cd-num{font-size:1rem;font-weight:500;color:var(--text);}
+.cd-lbl{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;gap:0.25rem;overflow-x:auto;}
+.tab{padding:0.7rem 1.1rem;font-size:0.82rem;color:var(--text-mid);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;display:flex;align-items:center;gap:0.4rem;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab .badge{background:var(--red);color:#fff;font-size:0.65rem;padding:0 5px;border-radius:10px;font-family:'DM Mono',monospace;line-height:1.5;}
+main{flex:1;padding:1.5rem;max-width:1300px;margin:0 auto;width:100%;}
+.view{display:none;}
+.view.active{display:block;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.5rem;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;}
+.section-title small{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text-mid);font-weight:400;display:block;margin-top:0.15rem;letter-spacing:0.08em;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.grid-2,.grid-4{grid-template-columns:1fr;}}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.gold::before{background:var(--gold);}
+.stat-card.green::before{background:var(--green);}
+.stat-card.red::before{background:var(--red);}
+.stat-card.amber::before{background:var(--amber);}
+.stat-card.blue::before{background:var(--blue);}
+.stat-num{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;line-height:1;}
+.stat-num.gold{color:var(--gold);}
+.stat-num.green{color:var(--green);}
+.stat-num.red{color:var(--red);}
+.stat-num.amber{color:var(--amber);}
+.stat-num.blue{color:var(--blue);}
+.stat-lbl{font-size:0.75rem;color:var(--text-mid);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.08em;font-family:'DM Mono',monospace;}
+.stat-sub{font-size:0.78rem;color:var(--text-dim);margin-top:0.2rem;}
+.prog-wrap{background:var(--border);border-radius:4px;height:6px;overflow:hidden;margin-top:0.5rem;}
+.prog-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+.prog-fill.gold{background:var(--gold);}
+.prog-fill.green{background:var(--green);}
+.prog-fill.amber{background:var(--amber);}
+.prog-fill.red{background:var(--red);}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:0.2rem 0.6rem;border-radius:100px;font-size:0.72rem;font-family:'DM Mono',monospace;font-weight:500;}
+.pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.pill.not-started{background:var(--surface3);color:var(--text-dim);}
+.pill.in-progress{background:var(--blue-dim);color:var(--blue);}
+.pill.completed{background:var(--green-dim);color:var(--green);}
+.pill.delayed{background:var(--red-dim);color:var(--red);}
+.pill.at-risk{background:var(--amber-dim);color:var(--amber);}
+.flag-card{background:var(--red-dim);border:1px solid rgba(248,81,73,0.3);border-radius:var(--radius);padding:0.9rem 1.1rem;display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:0.5rem;}
+.flag-icon{font-size:1.1rem;flex-shrink:0;}
+.flag-content h4{font-size:0.88rem;color:var(--red);font-weight:600;margin-bottom:0.2rem;}
+.flag-content p{font-size:0.8rem;color:rgba(248,81,73,0.8);line-height:1.5;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:500;cursor:pointer;transition:all 0.2s;border:none;font-family:'DM Sans',sans-serif;}
+.btn-primary{background:var(--gold);color:#0d1117;}
+.btn-primary:hover{background:#e8c97a;}
+.btn-ghost{background:transparent;color:var(--text-mid);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);}
+.btn-sm{padding:0.3rem 0.65rem;font-size:0.75rem;}
+.btn-icon{padding:0.3rem 0.45rem;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;color:var(--text-mid);font-size:0.85rem;transition:all 0.2s;}
+.btn-icon:hover{border-color:var(--border2);color:var(--text);}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.78rem;color:var(--text-mid);margin-bottom:0.35rem;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.55rem 0.8rem;color:var(--text);font-size:0.88rem;font-family:'DM Sans',sans-serif;transition:border-color 0.2s;outline:none;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold);}
+.form-group textarea{resize:vertical;min-height:70px;}
+.form-group select option{background:var(--surface2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:500px){.form-row{grid-template-columns:1fr;}}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:580px;max-height:90vh;overflow-y:auto;transform:translateY(12px);transition:transform 0.25s;}
+.modal-overlay.open .modal{transform:none;}
+.modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-header h3{font-family:'Playfair Display',serif;font-size:1.2rem;}
+.modal-close{background:none;border:none;color:var(--text-mid);cursor:pointer;font-size:1.2rem;padding:0.2rem;transition:color 0.2s;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:1.5rem;}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.75rem;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+th{text-align:left;padding:0.6rem 0.8rem;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:0.7rem 0.8rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+td a{color:var(--blue);text-decoration:none;font-size:0.8rem;font-family:'DM Mono',monospace;}
+td a:hover{text-decoration:underline;}
+.subject-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;overflow:hidden;transition:border-color 0.2s;}
+.subject-block.delayed{border-left:3px solid var(--red);}
+.subject-block.at-risk{border-left:3px solid var(--amber);}
+.subject-block.completed{border-left:3px solid var(--green);}
+.subject-block.in-progress{border-left:3px solid var(--blue);}
+.subject-header{padding:1rem 1.25rem;display:flex;align-items:center;gap:0.75rem;cursor:pointer;user-select:none;flex-wrap:wrap;}
+.subject-header:hover{background:var(--surface2);}
+.subject-toggle{color:var(--text-dim);transition:transform 0.2s;flex-shrink:0;font-size:0.8rem;}
+.subject-block.open .subject-toggle{transform:rotate(90deg);}
+.subject-name{font-weight:600;font-size:0.95rem;flex:1;min-width:120px;}
+.subject-dates{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text-mid);}
+.subject-actions{display:flex;gap:0.4rem;flex-shrink:0;}
+.subject-body{display:none;border-top:1px solid var(--border);padding:1rem 1.25rem;}
+.subject-block.open .subject-body{display:block;}
+.topic-row{display:grid;grid-template-columns:1fr 110px 110px 100px auto;align-items:center;gap:0.75rem;padding:0.6rem 0.5rem;border-radius:var(--radius-sm);transition:background 0.15s;}
+.topic-row:hover{background:var(--surface3);}
+.topic-date{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text-mid);white-space:nowrap;}
+.add-topic-row{display:flex;align-items:center;gap:0.5rem;margin-top:0.75rem;}
+.add-topic-input{flex:1;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.4rem 0.7rem;color:var(--text);font-size:0.83rem;outline:none;font-family:'DM Sans',sans-serif;}
+.add-topic-input:focus{border-color:var(--gold);}
+.res-type{display:inline-block;font-size:0.68rem;font-family:'DM Mono',monospace;padding:0.15rem 0.5rem;border-radius:3px;text-transform:uppercase;letter-spacing:0.08em;}
+.res-type.qbank{background:rgba(88,166,255,0.15);color:var(--blue);}
+.res-type.textbook{background:rgba(201,168,76,0.15);color:var(--gold);}
+.res-type.guidelines{background:rgba(63,185,80,0.15);color:var(--green);}
+.res-type.course{background:rgba(248,81,73,0.15);color:#ff9a94;}
+.res-type.video{background:rgba(210,153,34,0.15);color:var(--amber);}
+.res-type.other{background:var(--surface3);color:var(--text-mid);}
+.phase-badge{font-family:'DM Mono',monospace;font-size:0.68rem;padding:0.2rem 0.55rem;border-radius:3px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,0.2);}
+.adjust-panel{background:var(--amber-dim);border:1px solid rgba(210,153,34,0.3);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;}
+.adjust-panel h4{color:var(--amber);font-size:0.85rem;margin-bottom:0.5rem;}
+.adjust-controls{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+.adjust-controls span{font-size:0.82rem;color:var(--text-mid);}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text-dim);}
+.empty-icon{font-size:2.5rem;margin-bottom:0.75rem;}
+.empty p{font-size:0.88rem;margin-bottom:1rem;}
+.no-flags{font-size:0.85rem;color:var(--green);background:var(--green-dim);border:1px solid rgba(63,185,80,0.2);border-radius:var(--radius-sm);padding:0.75rem 1rem;display:flex;align-items:center;gap:0.5rem;}
+.setup-section{margin-bottom:1.75rem;}
+.setup-section-title{font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+.gantt-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;min-width:600px;}
+.gantt-label{width:160px;flex-shrink:0;font-size:0.8rem;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gantt-track{flex:1;height:22px;background:var(--surface3);border-radius:3px;position:relative;}
+.gantt-bar{position:absolute;top:3px;bottom:3px;border-radius:2px;transition:opacity 0.2s;}
+.gantt-today-line{position:absolute;top:0;bottom:0;width:1px;background:rgba(248,81,73,0.8);z-index:2;}
 </style>
 </head>
-
 <body>
+<header>
+  <div class="logo">MRCP·UK <span>PLANNER &amp; TRACKER</span></div>
+  <div id="countdown-bar"></div>
+  <button class="btn btn-sm btn-ghost" onclick="openTab('setup')" style="border-color:rgba(201,168,76,0.3);color:var(--gold);">⚙ Setup</button>
+</header>
+<nav>
+  <div class="tab active" onclick="openTab('dashboard')" id="tab-dashboard">📊 Dashboard</div>
+  <div class="tab" onclick="openTab('planner')" id="tab-planner">📚 Study Planner <span class="badge" id="delay-badge" style="display:none"></span></div>
+  <div class="tab" onclick="openTab('resources')" id="tab-resources">🔗 Resources</div>
+  <div class="tab" onclick="openTab('timeline')" id="tab-timeline">📅 Timeline</div>
+  <div class="tab" onclick="openTab('setup')" id="tab-setup">⚙ Setup</div>
+</nav>
+<main>
 
-<h1>📘 MRCP Part 1 Study & Practice Planner</h1>
+<!-- DASHBOARD -->
 
-<!-- MILESTONES -->
-<div class="card">
-<h2>🎯 Key Milestones</h2>
-<ul id="milestones"></ul>
+<div class="view active" id="view-dashboard">
+  <div class="section-header">
+    <div class="section-title">Dashboard <small>MRCP(UK) COMMAND CENTRE</small></div>
+    <button class="btn btn-ghost btn-sm" onclick="renderDashboard()">↻ Refresh</button>
+  </div>
+  <div class="grid-4" id="dash-stats" style="margin-bottom:1.25rem;"></div>
+  <div style="margin-bottom:1.25rem;">
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-dim);margin-bottom:0.6rem;">🚩 Red Flags &amp; Delays</div>
+    <div id="flag-list"></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:1.25rem;">
+    <div class="card">
+      <div style="font-family:'DM Mono',monospace;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:1rem;">Study Progress by Phase</div>
+      <div id="phase-progress-bars"></div>
+    </div>
+    <div class="card">
+      <div style="font-family:'DM Mono',monospace;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:1rem;">Topic Completion Summary</div>
+      <div id="topic-summary"></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-family:'DM Mono',monospace;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:0.85rem;">⏳ Currently In Progress</div>
+      <div id="in-progress-list"></div>
+    </div>
+    <div class="card">
+      <div style="font-family:'DM Mono',monospace;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:0.85rem;">🔜 Starting in Next 14 Days</div>
+      <div id="upcoming-list"></div>
+    </div>
+  </div>
 </div>
 
-<!-- STUDY PLAN -->
-<div class="card">
-<h2>📚 Topic-wise Study Plan</h2>
-<div id="topics"></div>
+<!-- PLANNER -->
+
+<div class="view" id="view-planner">
+  <div class="section-header">
+    <div class="section-title">Study Planner <small>SUBJECTS · TOPICS · DATES</small></div>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+      <select id="phase-filter" onchange="renderPlanner()" style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.4rem 0.7rem;color:var(--text);font-size:0.82rem;outline:none;">
+        <option value="all">All Phases</option>
+        <option value="1">Phase 1 — Part 1</option>
+        <option value="2">Phase 2 — Part 2</option>
+        <option value="3">Phase 3 — PACES</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openAddSubject()">+ Subject</button>
+    </div>
+  </div>
+  <div class="adjust-panel">
+    <h4>🔧 Bulk Target Date Adjustment</h4>
+    <div class="adjust-controls">
+      <span>Shift all pending dates in</span>
+      <select id="shift-phase-sel" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.35rem 0.6rem;color:var(--text);font-size:0.8rem;outline:none;">
+        <option value="all">All Phases</option><option value="1">Phase 1</option><option value="2">Phase 2</option><option value="3">Phase 3</option>
+      </select>
+      <span>by</span>
+      <input type="number" id="shift-days" value="7" min="1" max="90" style="width:65px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.35rem 0.6rem;color:var(--text);font-size:0.8rem;outline:none;text-align:center;"/>
+      <span>days</span>
+      <button class="btn btn-ghost btn-sm" onclick="shiftTargets(1)">→ Push Forward</button>
+      <button class="btn btn-ghost btn-sm" onclick="shiftTargets(-1)">← Pull Back</button>
+    </div>
+  </div>
+  <div id="planner-list"></div>
+</div>
+
+<!-- RESOURCES -->
+
+<div class="view" id="view-resources">
+  <div class="section-header">
+    <div class="section-title">Resources <small>ENROLLED MATERIALS &amp; LINKS</small></div>
+    <button class="btn btn-primary btn-sm" onclick="openAddResource()">+ Add Resource</button>
+  </div>
+  <div id="suggested-strip" style="margin-bottom:1.25rem;"></div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Resource</th><th>Type</th><th>Phase</th><th>Start</th><th>Target Done</th><th>Actual Done</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="resources-table"></tbody>
+      </table>
+    </div>
+    <div id="resources-empty" class="empty" style="display:none;">
+      <div class="empty-icon">🔗</div><p>No resources added yet.</p>
+      <button class="btn btn-primary btn-sm" onclick="openAddResource()">+ Add First Resource</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+
+<div class="view" id="view-timeline">
+  <div class="section-header">
+    <div class="section-title">Timeline <small>GANTT VIEW</small></div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text-mid);display:flex;gap:1rem;">
+      <span><span style="color:var(--red);">|</span> Today</span>
+      <span><span style="color:var(--blue);">■</span> Target</span>
+      <span><span style="color:var(--green);">■</span> Actual</span>
+      <span><span style="color:var(--red);">■</span> Delayed</span>
+    </div>
+  </div>
+  <div id="timeline-content"></div>
+</div>
+
+<!-- SETUP -->
+
+<div class="view" id="view-setup">
+  <div class="section-header">
+    <div class="section-title">Setup <small>EXAM CONFIGURATION</small></div>
+  </div>
+  <div class="card" style="max-width:760px;">
+    <div class="setup-section">
+      <div class="setup-section-title">👤 Candidate Information</div>
+      <div class="form-row">
+        <div class="form-group"><label>Your Name</label><input type="text" id="s-name" placeholder="Dr. Your Name"/></div>
+        <div class="form-group"><label>Qualification</label><input type="text" id="s-qual" placeholder="MBBS, Cardiologist — 25 yrs"/></div>
+      </div>
+    </div>
+    <div class="setup-section">
+      <div class="setup-section-title">📅 Key Dates</div>
+      <div class="form-row">
+        <div class="form-group"><label>Preparation Start Date</label><input type="date" id="s-prep-start"/></div>
+        <div class="form-group"><label>Application Submission Deadline</label><input type="date" id="s-app-deadline"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Part 1 Exam Date (Target)</label><input type="date" id="s-part1"/></div>
+        <div class="form-group"><label>Part 2 Exam Date (Target)</label><input type="date" id="s-part2"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>PACES Exam Date (Target)</label><input type="date" id="s-paces"/></div>
+        <div class="form-group"><label>Daily Study Hours (Weekday)</label><input type="number" id="s-hours" min="1" max="12" value="2.5" step="0.5"/></div>
+      </div>
+    </div>
+    <div class="setup-section">
+      <div class="setup-section-title">🏥 Exam Centres (India)</div>
+      <div class="form-row">
+        <div class="form-group"><label>Part 1 &amp; 2 Centre</label>
+          <select id="s-centre12"><option>Mumbai</option><option>Delhi</option><option>Chennai</option><option>Kolkata</option><option>Hyderabad</option><option>Bangalore</option><option>Other</option></select>
+        </div>
+        <div class="form-group"><label>PACES Centre</label>
+          <select id="s-centrepaces"><option>Mumbai</option><option>Delhi</option><option>Chennai</option><option>Kolkata</option><option>Hyderabad</option><option>Bangalore</option><option>Other</option></select>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="saveSetup()">💾 Save Setup</button>
+      <button class="btn btn-ghost" onclick="loadDefaultSubjects()">✨ Load MRCP Template</button>
+    </div>
+    <div id="setup-msg" style="margin-top:0.75rem;font-size:0.82rem;"></div>
+  </div>
+</div>
+</main>
+
+<!-- MODAL: Subject -->
+
+<div class="modal-overlay" id="modal-subject">
+  <div class="modal">
+    <div class="modal-header"><h3 id="subj-modal-title">Add Subject</h3><button class="modal-close" onclick="closeModal('modal-subject')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="subj-id"/>
+      <div class="form-group"><label>Subject Name</label><input type="text" id="subj-name" placeholder="e.g. Cardiology"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>Phase</label>
+          <select id="subj-phase"><option value="1">Phase 1 — Part 1</option><option value="2">Phase 2 — Part 2</option><option value="3">Phase 3 — PACES</option></select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="subj-status"><option value="not-started">Not Started</option><option value="in-progress">In Progress</option><option value="completed">Completed</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Target Start</label><input type="date" id="subj-tstart"/></div>
+        <div class="form-group"><label>Target End</label><input type="date" id="subj-tend"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Actual Start</label><input type="date" id="subj-astart"/></div>
+        <div class="form-group"><label>Actual Completion</label><input type="date" id="subj-aend"/></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="subj-notes" placeholder="Focus areas, weak points..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-subject')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSubject()">Save Subject</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Topic -->
+
+<div class="modal-overlay" id="modal-topic">
+  <div class="modal">
+    <div class="modal-header"><h3 id="topic-modal-title">Add Topic</h3><button class="modal-close" onclick="closeModal('modal-topic')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="topic-subj-id"/>
+      <input type="hidden" id="topic-id"/>
+      <div class="form-group"><label>Topic Name</label><input type="text" id="topic-name" placeholder="e.g. Heart Failure Management"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>Target Start</label><input type="date" id="topic-tstart"/></div>
+        <div class="form-group"><label>Target End</label><input type="date" id="topic-tend"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Actual Start</label><input type="date" id="topic-astart"/></div>
+        <div class="form-group"><label>Actual Completion</label><input type="date" id="topic-aend"/></div>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="topic-status"><option value="not-started">Not Started</option><option value="in-progress">In Progress</option><option value="completed">Completed</option></select>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="topic-notes" placeholder="Key points, resources used..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-topic')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTopic()">Save Topic</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Resource -->
+
+<div class="modal-overlay" id="modal-resource">
+  <div class="modal">
+    <div class="modal-header"><h3 id="res-modal-title">Add Resource</h3><button class="modal-close" onclick="closeModal('modal-resource')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="res-id"/>
+      <div class="form-group"><label>Resource Name</label><input type="text" id="res-name" placeholder="e.g. Passmedicine Part 1"/></div>
+      <div class="form-group"><label>URL / Link</label><input type="url" id="res-url" placeholder="https://..."/></div>
+      <div class="form-row">
+        <div class="form-group"><label>Type</label>
+          <select id="res-type"><option value="qbank">Question Bank</option><option value="textbook">Textbook</option><option value="guidelines">Guidelines</option><option value="course">Course</option><option value="video">Video</option><option value="other">Other</option></select>
+        </div>
+        <div class="form-group"><label>Phase</label>
+          <select id="res-phase"><option value="1">Phase 1</option><option value="2">Phase 2</option><option value="3">Phase 3</option><option value="all">All Phases</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Start Date</label><input type="date" id="res-start"/></div>
+        <div class="form-group"><label>Target Completion</label><input type="date" id="res-target"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Actual Completion</label><input type="date" id="res-actual"/></div>
+        <div class="form-group"><label>Status</label>
+          <select id="res-status"><option value="enrolled">Enrolled</option><option value="in-progress">In Progress</option><option value="completed">Completed</option><option value="paused">Paused</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="res-notes" placeholder="Access details, progress notes..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-resource')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveResource()">Save Resource</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const milestones = [
-  { name: "Create MRCP UK Account", date: "2026-05-01", link:"https://www.mrcpuk.org/mrcpuk-examinations/part-1" },
-  { name: "Register & Pay for Exam", date: "2026-06-01" },
-  { name: "MRCP Part 1 Exam", date: "2026-09-15" },
-  { name: "Expected Result Window", date: "2026-10-10" }
-];
+const DB={get(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}},set(k,v){localStorage.setItem(k,JSON.stringify(v));}};
+const getSetup=()=>DB.get('mrcp_setup')||{name:'',qual:'',prepStart:'',appDeadline:'',part1:'',part2:'',paces:'',hours:2.5,centre12:'Mumbai',centrePaces:'Mumbai'};
+const getSubjects=()=>DB.get('mrcp_subjects')||[];
+const getResources=()=>DB.get('mrcp_resources')||[];
+const saveSubjects=s=>DB.set('mrcp_subjects',s);
+const saveResources=r=>DB.set('mrcp_resources',r);
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function today(){return new Date().toISOString().slice(0,10);}
+function daysFrom(d){if(!d)return null;const a=new Date(d),b=new Date();a.setHours(0,0,0,0);b.setHours(0,0,0,0);return Math.round((a-b)/86400000);}
+function fmt(d){if(!d)return '—';const[y,m,dy]=d.split('-');return dy+'/'+m+'/'+y;}
+function calcStatus(item){
+  if(item.actualEnd||item.status==='completed') return 'completed';
+  if(item.actualStart){if(item.targetEnd&&daysFrom(item.targetEnd)<0) return 'delayed';return 'in-progress';}
+  if(item.targetStart&&daysFrom(item.targetStart)<-3) return 'delayed';
+  if(item.targetStart&&daysFrom(item.targetStart)<=3&&daysFrom(item.targetStart)>=-3) return 'at-risk';
+  return item.status||'not-started';
+}
 
-const topics = [
-  {
-    name: "Cardiology",
-    deadline: "2026-06-15",
-    sections: [
-      {
-        name: "Theory",
-        resources: [
-          { name:"Oxford Handbook of Medicine", link:"https://global.oup.com/academic/product/oxford-handbook-of-medicine-9780198830574" },
-          { name:"ESC Guidelines", link:"https://www.escardio.org/Guidelines" }
-        ]
-      },
-      {
-        name: "MCQs",
-        resources: [
-          { name:"Passmedicine Cardiology", link:"https://passmedicine.com/mrcp/" },
-          { name:"Pastest", link:"https://pastest.com" }
-        ]
-      },
-      {
-        name: "Revision",
-        resources: [
-          { name:"Zero to Finals (YouTube)", link:"https://www.youtube.com/c/ZeroToFinals" },
-          { name:"BMJ Best Practice", link:"https://bestpractice.bmj.com" }
-        ]
-      }
-    ]
-  },
+// NAV
+function openTab(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  else if(name==='planner') renderPlanner();
+  else if(name==='resources') renderResources();
+  else if(name==='timeline') renderTimeline();
+  else if(name==='setup') loadSetupForm();
+}
 
-  {
-    name: "Respiratory Medicine",
-    deadline: "2026-07-10",
-    sections: [
-      {
-        name: "Theory",
-        resources: [
-          { name:"BTS Guidelines", link:"https://www.brit-thoracic.org.uk/quality-improvement/guidelines/" }
-        ]
-      },
-      {
-        name: "MCQs",
-        resources: [
-          { name:"Passmedicine Respiratory", link:"https://passmedicine.com/mrcp/" }
-        ]
-      },
-      {
-        name: "Revision",
-        resources: [
-          { name:"Pastest Rapid Review", link:"https://pastest.com" }
-        ]
-      }
-    ]
+// MODALS
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// COUNTDOWN
+function renderCountdown(){
+  const s=getSetup();
+  const bar=document.getElementById('countdown-bar');
+  const items=[];
+  if(s.appDeadline){const d=daysFrom(s.appDeadline);if(d>=0)items.push({n:d,l:'App Deadline',c:d<14?'var(--red)':d<30?'var(--amber)':'var(--text)'});}
+  if(s.part1){const d=daysFrom(s.part1);if(d>=0)items.push({n:d,l:'Part 1',c:d<30?'var(--red)':d<60?'var(--amber)':'var(--text)'});}
+  if(s.part2){const d=daysFrom(s.part2);if(d>=0)items.push({n:d,l:'Part 2',c:d<30?'var(--red)':d<60?'var(--amber)':'var(--text)'});}
+  if(s.paces){const d=daysFrom(s.paces);if(d>=0)items.push({n:d,l:'PACES',c:d<30?'var(--red)':d<60?'var(--amber)':'var(--text)'});}
+  bar.innerHTML=items.map(i=>'<div class="cd-item"><span class="cd-num" style="color:'+i.c+'">'+i.n+'</span><span class="cd-lbl">'+i.l+'</span></div>').join('');
+}
+
+// DASHBOARD
+function renderDashboard(){
+  renderCountdown();
+  const subjects=getSubjects(),resources=getResources();
+  const allTopics=subjects.flatMap(s=>s.topics||[]);
+  const total=allTopics.length,done=allTopics.filter(t=>t.actualEnd||t.status==='completed').length;
+  const inProg=subjects.filter(s=>calcStatus(s)==='in-progress').length;
+  const delayed=subjects.filter(s=>['delayed','at-risk'].includes(calcStatus(s))).length;
+  const resComp=resources.filter(r=>r.status==='completed').length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('dash-stats').innerHTML=
+    '<div class="stat-card gold"><div class="stat-num gold">'+pct+'%</div><div class="stat-lbl">Overall Progress</div><div class="prog-wrap"><div class="prog-fill gold" style="width:'+pct+'%"></div></div><div class="stat-sub">'+done+'/'+total+' topics done</div></div>'+
+    '<div class="stat-card blue"><div class="stat-num blue">'+inProg+'</div><div class="stat-lbl">Active Subjects</div><div class="stat-sub">Currently in progress</div></div>'+
+    '<div class="stat-card '+(delayed>0?'red':'green')+'"><div class="stat-num '+(delayed>0?'red':'green')+'">'+delayed+'</div><div class="stat-lbl">Delayed / At Risk</div><div class="stat-sub">'+(delayed>0?'Needs attention':'All on track!')+'</div></div>'+
+    '<div class="stat-card amber"><div class="stat-num amber">'+resComp+'/'+resources.length+'</div><div class="stat-lbl">Resources Completed</div><div class="stat-sub">'+(resources.length-resComp)+' remaining</div></div>';
+
+  // Flags
+  const flags=[];
+  subjects.forEach(s=>{
+    const st=calcStatus(s);
+    if(st==='delayed') flags.push({i:'🚨',t:'Subject Overdue: '+s.name,m:'Target end was '+fmt(s.targetEnd)+'. Not yet completed.'});
+    else if(st==='at-risk') flags.push({i:'⚠️',t:'Subject Due to Start: '+s.name,m:'Target start '+fmt(s.targetStart)+' — not yet begun.'});
+    (s.topics||[]).forEach(t=>{if(calcStatus(t)==='delayed') flags.push({i:'🔴',t:'Topic Overdue: '+t.name,m:'In '+s.name+' — target end was '+fmt(t.targetEnd)+'.'});});
+  });
+  const setup=getSetup();
+  if(setup.appDeadline){const d=daysFrom(setup.appDeadline);if(d>=0&&d<=14) flags.push({i:'📋',t:'Application Deadline in '+d+' days',m:'Submit MRCP(UK) application by '+fmt(setup.appDeadline)+'.'});}
+  const fl=document.getElementById('flag-list');
+  fl.innerHTML=flags.length?flags.map(f=>'<div class="flag-card"><div class="flag-icon">'+f.i+'</div><div class="flag-content"><h4>'+f.t+'</h4><p>'+f.m+'</p></div></div>').join(''):
+    '<div class="no-flags">✅ No red flags — you\'re on track! Keep going.</div>';
+  const badge=document.getElementById('delay-badge');
+  if(flags.length){badge.textContent=flags.length;badge.style.display='inline';}else badge.style.display='none';
+
+  // Phase progress
+  document.getElementById('phase-progress-bars').innerHTML=[1,2,3].map(ph=>{
+    const ps=subjects.filter(s=>+s.phase===ph);
+    const pt=ps.flatMap(s=>s.topics||[]);
+    const pd=pt.filter(t=>t.actualEnd||t.status==='completed').length;
+    const pp=pt.length?Math.round(pd/pt.length*100):0;
+    const labels=['','Phase 1 — Part 1','Phase 2 — Part 2','Phase 3 — PACES'];
+    const c=pp===100?'green':pp>50?'gold':'amber';
+    return '<div style="margin-bottom:0.85rem;"><div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.3rem;"><span>'+labels[ph]+'</span><span style="font-family:\'DM Mono\',monospace;color:var(--text-mid)">'+pp+'% · '+pd+'/'+pt.length+'</span></div><div class="prog-wrap"><div class="prog-fill '+c+'" style="width:'+pp+'%"></div></div></div>';
+  }).join('');
+
+  // Topic summary
+  const ns=allTopics.filter(t=>(!t.status||t.status==='not-started')&&!t.actualEnd).length;
+  const ip=allTopics.filter(t=>t.status==='in-progress'&&!t.actualEnd).length;
+  const cp=allTopics.filter(t=>t.actualEnd||t.status==='completed').length;
+  const dl=allTopics.filter(t=>calcStatus(t)==='delayed').length;
+  document.getElementById('topic-summary').innerHTML='<div style="display:flex;flex-direction:column;gap:0.6rem;">'+
+    [['Not Started',ns,'var(--text-dim)'],['In Progress',ip,'var(--blue)'],['Completed',cp,'var(--green)'],['Delayed',dl,'var(--red)']].map(([l,n,c])=>
+      '<div style="display:flex;align-items:center;gap:0.75rem;"><div style="width:10px;height:10px;border-radius:50%;background:'+c+';flex-shrink:0;"></div><span style="flex:1;font-size:0.83rem;">'+l+'</span><span style="font-family:\'DM Mono\',monospace;font-size:0.83rem;color:var(--text-mid);">'+n+'</span><div style="width:90px;background:var(--border);border-radius:3px;height:5px;"><div style="width:'+(total?Math.round(n/total*100):0)+'%;background:'+c+';height:100%;border-radius:3px;"></div></div></div>'
+    ).join('')+'</div>';
+
+  // In progress
+  const ipS=subjects.filter(s=>calcStatus(s)==='in-progress');
+  document.getElementById('in-progress-list').innerHTML=ipS.length?ipS.map(s=>
+    '<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.87rem;font-weight:500;">'+s.name+'</div><div style="font-size:0.75rem;color:var(--text-dim);font-family:\'DM Mono\',monospace;">Ph '+s.phase+' · Due '+fmt(s.targetEnd)+'</div></div><span class="pill in-progress">In Progress</span></div>'
+  ).join(''):'<div style="font-size:0.82rem;color:var(--text-dim);">Nothing in progress yet.</div>';
+
+  // Upcoming
+  const now=new Date();now.setHours(0,0,0,0);const soon=new Date(now);soon.setDate(soon.getDate()+14);
+  const up=subjects.filter(s=>{if(!s.targetStart)return false;const d=new Date(s.targetStart);return d>=now&&d<=soon&&calcStatus(s)==='not-started';}).sort((a,b)=>a.targetStart>b.targetStart?1:-1);
+  document.getElementById('upcoming-list').innerHTML=up.length?up.map(s=>
+    '<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.87rem;font-weight:500;">'+s.name+'</div><div style="font-size:0.75rem;color:var(--text-dim);font-family:\'DM Mono\',monospace;">Starts '+fmt(s.targetStart)+'</div></div><span style="font-family:\'DM Mono\',monospace;font-size:0.75rem;color:var(--amber);">'+daysFrom(s.targetStart)+'d</span></div>'
+  ).join(''):'<div style="font-size:0.82rem;color:var(--text-dim);">No subjects starting in next 14 days.</div>';
+}
+
+// PLANNER
+function renderPlanner(){
+  const subjects=getSubjects();
+  const phase=document.getElementById('phase-filter').value;
+  const filtered=phase==='all'?subjects:subjects.filter(s=>String(s.phase)===phase);
+  const list=document.getElementById('planner-list');
+  if(filtered.length===0){
+    list.innerHTML='<div class="empty"><div class="empty-icon">📚</div><p>No subjects yet. Add a subject or load the MRCP template from Setup.</p><button class="btn btn-primary btn-sm" onclick="openAddSubject()">+ Add Subject</button></div>';
+    return;
   }
+  list.innerHTML=filtered.map(s=>{
+    const st=calcStatus(s);
+    const topics=s.topics||[];
+    const done=topics.filter(t=>t.actualEnd||t.status==='completed').length;
+    const pct=topics.length?Math.round(done/topics.length*100):0;
+    const tHead='<div style="display:grid;grid-template-columns:1fr 110px 110px 100px auto;gap:0.5rem;padding:0.35rem 0.5rem;font-family:\'DM Mono\',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:0.05em;text-transform:uppercase;border-bottom:1px solid var(--border);margin-bottom:0.25rem;"><span>Topic</span><span>Target Start</span><span>Target End</span><span>Status</span><span style="text-align:right;">Act</span></div>';
+    const tRows=topics.map(t=>{
+      const ts=calcStatus(t);
+      const doneInfo=t.actualEnd?'<div style="font-size:0.7rem;color:var(--green);font-family:\'DM Mono\',monospace;">✓ '+fmt(t.actualEnd)+'</div>':t.actualStart?'<div style="font-size:0.7rem;color:var(--blue);font-family:\'DM Mono\',monospace;">▶ '+fmt(t.actualStart)+'</div>':'';
+      return '<div class="topic-row" id="topic-'+t.id+'"><div><span style="font-size:0.87rem;">'+t.name+'</span>'+doneInfo+'</div><span class="topic-date">'+fmt(t.targetStart)+'</span><span class="topic-date">'+fmt(t.targetEnd)+'</span><span class="pill '+ts+'">'+ts.replace('-',' ')+'</span><div style="display:flex;gap:0.3rem;justify-content:flex-end;"><button class="btn-icon" onclick="openEditTopic(\''+s.id+'\',\''+t.id+'\')" title="Edit">✏️</button><button class="btn-icon" onclick="deleteTopic(\''+s.id+'\',\''+t.id+'\')" title="Delete">🗑️</button></div></div>';
+    }).join('');
+    return '<div class="subject-block '+st+'" id="subj-'+s.id+'"><div class="subject-header" onclick="toggleSubject(\''+s.id+'\')"><span class="subject-toggle">▶</span><span class="subject-name">'+s.name+'</span><span class="phase-badge">Ph '+s.phase+'</span><span class="subject-dates">'+fmt(s.targetStart)+' → '+fmt(s.targetEnd)+'</span><span class="pill '+st+'">'+st.replace('-',' ')+'</span><span style="font-family:\'DM Mono\',monospace;font-size:0.75rem;color:var(--text-mid);min-width:42px;text-align:right;">'+pct+'%</span><div class="subject-actions"><button class="btn-icon" onclick="openEditSubject(\''+s.id+'\',event)">✏️</button><button class="btn-icon" onclick="deleteSubject(\''+s.id+'\',event)">🗑️</button></div></div><div class="subject-body">'+(s.notes?'<div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:0.85rem;padding:0.6rem 0.75rem;background:var(--surface3);border-radius:var(--radius-sm);">'+s.notes+'</div>':'')+'<div style="margin-bottom:0.5rem;"><div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-dim);margin-bottom:0.3rem;font-family:\'DM Mono\',monospace;"><span>TOPICS: '+done+'/'+topics.length+'</span><span>'+pct+'%</span></div><div class="prog-wrap"><div class="prog-fill '+(pct===100?'green':pct>50?'gold':'amber')+'" style="width:'+pct+'%"></div></div></div>'+tHead+tRows+'<div class="add-topic-row"><input class="add-topic-input" placeholder="+ Quick add topic..." id="qt-'+s.id+'" onkeydown="if(event.key===\'Enter\')quickAddTopic(\''+s.id+'\')"/><button class="btn btn-ghost btn-sm" onclick="quickAddTopic(\''+s.id+'\')">Add</button><button class="btn btn-ghost btn-sm" onclick="openAddTopic(\''+s.id+'\')">Full Edit</button></div></div></div>';
+  }).join('');
+}
+
+function toggleSubject(id){const b=document.getElementById('subj-'+id);if(b)b.classList.toggle('open');}
+function openAddSubject(){['subj-id','subj-name','subj-tstart','subj-tend','subj-astart','subj-aend','subj-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('subj-phase').value='1';document.getElementById('subj-status').value='not-started';document.getElementById('subj-modal-title').textContent='Add Subject';openModal('modal-subject');}
+function openEditSubject(id,e){if(e)e.stopPropagation();const s=getSubjects().find(x=>x.id===id);if(!s)return;document.getElementById('subj-id').value=s.id;document.getElementById('subj-name').value=s.name;document.getElementById('subj-phase').value=s.phase;document.getElementById('subj-status').value=s.status||'not-started';document.getElementById('subj-tstart').value=s.targetStart||'';document.getElementById('subj-tend').value=s.targetEnd||'';document.getElementById('subj-astart').value=s.actualStart||'';document.getElementById('subj-aend').value=s.actualEnd||'';document.getElementById('subj-notes').value=s.notes||'';document.getElementById('subj-modal-title').textContent='Edit Subject';openModal('modal-subject');}
+function saveSubject(){const subjects=getSubjects();const id=document.getElementById('subj-id').value;const data={name:document.getElementById('subj-name').value.trim(),phase:+document.getElementById('subj-phase').value,status:document.getElementById('subj-status').value,targetStart:document.getElementById('subj-tstart').value,targetEnd:document.getElementById('subj-tend').value,actualStart:document.getElementById('subj-astart').value,actualEnd:document.getElementById('subj-aend').value,notes:document.getElementById('subj-notes').value};if(!data.name)return;if(id){const i=subjects.findIndex(x=>x.id===id);if(i>=0)subjects[i]={...subjects[i],...data};}else subjects.push({id:uid(),topics:[],...data});saveSubjects(subjects);closeModal('modal-subject');renderPlanner();renderCountdown();}
+function deleteSubject(id,e){if(e)e.stopPropagation();if(!confirm('Delete this subject and all its topics?'))return;saveSubjects(getSubjects().filter(s=>s.id!==id));renderPlanner();}
+
+function openAddTopic(subjId){['topic-id','topic-name','topic-tstart','topic-tend','topic-astart','topic-aend','topic-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('topic-subj-id').value=subjId;document.getElementById('topic-status').value='not-started';document.getElementById('topic-modal-title').textContent='Add Topic';openModal('modal-topic');}
+function openEditTopic(subjId,topicId){const s=getSubjects().find(x=>x.id===subjId);if(!s)return;const t=(s.topics||[]).find(x=>x.id===topicId);if(!t)return;document.getElementById('topic-subj-id').value=subjId;document.getElementById('topic-id').value=topicId;document.getElementById('topic-name').value=t.name;document.getElementById('topic-tstart').value=t.targetStart||'';document.getElementById('topic-tend').value=t.targetEnd||'';document.getElementById('topic-astart').value=t.actualStart||'';document.getElementById('topic-aend').value=t.actualEnd||'';document.getElementById('topic-status').value=t.status||'not-started';document.getElementById('topic-notes').value=t.notes||'';document.getElementById('topic-modal-title').textContent='Edit Topic';openModal('modal-topic');}
+function saveTopic(){const subjects=getSubjects();const subjId=document.getElementById('topic-subj-id').value;const topicId=document.getElementById('topic-id').value;const s=subjects.find(x=>x.id===subjId);if(!s)return;s.topics=s.topics||[];const data={name:document.getElementById('topic-name').value.trim(),targetStart:document.getElementById('topic-tstart').value,targetEnd:document.getElementById('topic-tend').value,actualStart:document.getElementById('topic-astart').value,actualEnd:document.getElementById('topic-aend').value,status:document.getElementById('topic-status').value,notes:document.getElementById('topic-notes').value};if(!data.name)return;if(topicId){const i=s.topics.findIndex(x=>x.id===topicId);if(i>=0)s.topics[i]={...s.topics[i],...data};}else s.topics.push({id:uid(),...data});saveSubjects(subjects);closeModal('modal-topic');renderPlanner();}
+function deleteTopic(subjId,topicId){const subjects=getSubjects();const s=subjects.find(x=>x.id===subjId);if(!s)return;s.topics=(s.topics||[]).filter(t=>t.id!==topicId);saveSubjects(subjects);renderPlanner();}
+function quickAddTopic(subjId){const inp=document.getElementById('qt-'+subjId);if(!inp||!inp.value.trim())return;const subjects=getSubjects();const s=subjects.find(x=>x.id===subjId);if(!s)return;s.topics=s.topics||[];s.topics.push({id:uid(),name:inp.value.trim(),status:'not-started',targetStart:'',targetEnd:'',actualStart:'',actualEnd:'',notes:''});saveSubjects(subjects);inp.value='';renderPlanner();setTimeout(()=>{const b=document.getElementById('subj-'+subjId);if(b&&!b.classList.contains('open'))b.classList.add('open');},50);}
+
+function shiftTargets(dir){const days=+document.getElementById('shift-days').value*dir;const phase=document.getElementById('shift-phase-sel').value;const subjects=getSubjects();function sd(d){if(!d)return d;const dt=new Date(d);dt.setDate(dt.getDate()+days);return dt.toISOString().slice(0,10);}subjects.forEach(s=>{if(phase!=='all'&&String(s.phase)!==phase)return;if(!s.actualEnd){s.targetStart=sd(s.targetStart);s.targetEnd=sd(s.targetEnd);(s.topics||[]).forEach(t=>{if(!t.actualEnd){t.targetStart=sd(t.targetStart);t.targetEnd=sd(t.targetEnd);}});}});saveSubjects(subjects);renderPlanner();}
+
+// RESOURCES
+const SUGGESTED=[
+  {name:'Passmedicine',url:'https://www.passmedicine.com',type:'qbank',phase:'1'},
+  {name:'OnExamination (BMJ)',url:'https://www.onexamination.com',type:'qbank',phase:'1'},
+  {name:'Kumar & Clark Clinical Medicine',url:'https://www.elsevier.com/books/kumar-and-clarks-clinical-medicine',type:'textbook',phase:'1'},
+  {name:'MRCP Part 1 Revision Notes – Kalra',url:'https://www.amazon.co.uk/dp/1907904433',type:'textbook',phase:'1'},
+  {name:'PACES for MRCP – Iqbal & Iqbal',url:'https://www.amazon.co.uk/dp/1905635540',type:'textbook',phase:'3'},
+  {name:'NICE Guidelines',url:'https://www.nice.org.uk/guidance',type:'guidelines',phase:'2'},
+  {name:'ESC Guidelines',url:'https://www.escardio.org/Guidelines',type:'guidelines',phase:'all'},
+  {name:'BTS Guidelines',url:'https://www.brit-thoracic.org.uk/quality-improvement/guidelines/',type:'guidelines',phase:'2'},
+  {name:'BSG Guidelines',url:'https://www.bsg.org.uk/clinical-guidance/',type:'guidelines',phase:'2'},
+  {name:'ISC Medical PACES Course',url:'https://www.iscmedical.co.uk/mrcp-paces-courses.html',type:'course',phase:'3'},
+  {name:'RCP London PACES Course',url:'https://www.rcplondon.ac.uk/education-practice/courses/mrcp-uk-paces-preparation-course',type:'course',phase:'3'},
+  {name:'MRCP(UK) Official Registration',url:'https://www.mrcpuk.org',type:'other',phase:'all'},
+  {name:'Zero to Finals',url:'https://zerotofinals.com/medicine/',type:'other',phase:'1'},
 ];
 
-function renderMilestones() {
-  const ul = document.getElementById("milestones");
-  milestones.forEach(m => {
-    const li = document.createElement("li");
-    li.innerHTML = `${m.name} – <b>${m.date}</b> 
-      ${m.link ? `(<a href="${m.link}" target="_blank">link</a>)` : ""}`;
-    ul.appendChild(li);
-  });
+function renderResources(){
+  const resources=getResources();
+  const existing=resources.map(r=>r.name.toLowerCase());
+  const sugg=SUGGESTED.filter(s=>!existing.includes(s.name.toLowerCase()));
+  document.getElementById('suggested-strip').innerHTML=sugg.length?
+    '<div class="card" style="border-color:rgba(88,166,255,0.2);padding:1rem 1.25rem;"><div style="font-family:\'DM Mono\',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin-bottom:0.75rem;">✦ Suggested — Click to Add</div><div style="display:flex;flex-wrap:wrap;gap:0.5rem;">'+
+    sugg.map(s=>'<button onclick="quickAddSug(\''+encodeURIComponent(JSON.stringify(s))+'\')" style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.3rem 0.75rem;color:var(--text-mid);font-size:0.78rem;cursor:pointer;" onmouseover="this.style.borderColor=\'var(--blue)\';this.style.color=\'var(--blue)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text-mid)\'"><span class="res-type '+s.type+'" style="margin-right:4px;">'+s.type+'</span>'+s.name+'</button>'
+    ).join('')+'</div></div>':
+    '<div class="no-flags">✅ All suggested resources added.</div>';
+
+  const tbody=document.getElementById('resources-table');
+  const empty=document.getElementById('resources-empty');
+  if(resources.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=resources.map(r=>{
+    const overdue=r.targetCompletion&&!r.actualCompletion&&daysFrom(r.targetCompletion)<0;
+    const stClass=r.status==='completed'?'completed':r.status==='in-progress'?'in-progress':r.status==='paused'?'at-risk':'not-started';
+    return '<tr><td><div style="font-weight:500;font-size:0.88rem;">'+r.name+'</div>'+(r.url?'<a href="'+r.url+'" target="_blank" rel="noopener">↗ Open</a>':'')+(r.notes?'<div style="font-size:0.75rem;color:var(--text-dim);">'+r.notes.slice(0,60)+'</div>':'')+'</td><td><span class="res-type '+r.type+'">'+r.type+'</span></td><td><span class="phase-badge">Ph '+r.phase+'</span></td><td style="font-family:\'DM Mono\',monospace;font-size:0.8rem;">'+fmt(r.startDate)+'</td><td style="font-family:\'DM Mono\',monospace;font-size:0.8rem;'+(overdue?'color:var(--red);':'')+'">'+fmt(r.targetCompletion)+(overdue?' ⚠️':'')+'</td><td style="font-family:\'DM Mono\',monospace;font-size:0.8rem;color:var(--green);">'+fmt(r.actualCompletion)+'</td><td><span class="pill '+stClass+'">'+r.status+'</span></td><td><div style="display:flex;gap:0.3rem;"><button class="btn-icon" onclick="openEditResource(\''+r.id+'\')">✏️</button><button class="btn-icon" onclick="deleteResource(\''+r.id+'\')">🗑️</button></div></td></tr>';
+  }).join('');
 }
 
-function renderTopics() {
-  const container = document.getElementById("topics");
+function quickAddSug(enc){const s=JSON.parse(decodeURIComponent(enc));const resources=getResources();resources.push({id:uid(),name:s.name,url:s.url,type:s.type,phase:s.phase,startDate:'',targetCompletion:'',actualCompletion:'',status:'enrolled',notes:''});saveResources(resources);renderResources();}
+function openAddResource(){['res-id','res-name','res-url','res-start','res-target','res-actual','res-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('res-type').value='qbank';document.getElementById('res-phase').value='1';document.getElementById('res-status').value='enrolled';document.getElementById('res-modal-title').textContent='Add Resource';openModal('modal-resource');}
+function openEditResource(id){const r=getResources().find(x=>x.id===id);if(!r)return;document.getElementById('res-id').value=r.id;document.getElementById('res-name').value=r.name;document.getElementById('res-url').value=r.url||'';document.getElementById('res-type').value=r.type||'other';document.getElementById('res-phase').value=r.phase||'1';document.getElementById('res-start').value=r.startDate||'';document.getElementById('res-target').value=r.targetCompletion||'';document.getElementById('res-actual').value=r.actualCompletion||'';document.getElementById('res-status').value=r.status||'enrolled';document.getElementById('res-notes').value=r.notes||'';document.getElementById('res-modal-title').textContent='Edit Resource';openModal('modal-resource');}
+function saveResource(){const resources=getResources();const id=document.getElementById('res-id').value;const data={name:document.getElementById('res-name').value.trim(),url:document.getElementById('res-url').value.trim(),type:document.getElementById('res-type').value,phase:document.getElementById('res-phase').value,startDate:document.getElementById('res-start').value,targetCompletion:document.getElementById('res-target').value,actualCompletion:document.getElementById('res-actual').value,status:document.getElementById('res-status').value,notes:document.getElementById('res-notes').value};if(!data.name)return;if(id){const i=resources.findIndex(x=>x.id===id);if(i>=0)resources[i]={...resources[i],...data};}else resources.push({id:uid(),...data});saveResources(resources);closeModal('modal-resource');renderResources();}
+function deleteResource(id){if(!confirm('Remove this resource?'))return;saveResources(getResources().filter(r=>r.id!==id));renderResources();}
 
-  topics.forEach(topic => {
-    const card = document.createElement("div");
-    card.className = "card";
+// TIMELINE
+function renderTimeline(){
+  const subjects=getSubjects(),setup=getSetup();
+  const content=document.getElementById('timeline-content');
+  if(subjects.length===0){content.innerHTML='<div class="empty"><div class="empty-icon">📅</div><p>Add subjects in the Study Planner to see the Gantt timeline.</p></div>';return;}
+  const allD=[];
+  if(setup.prepStart)allD.push(new Date(setup.prepStart));
+  if(setup.paces)allD.push(new Date(setup.paces));
+  subjects.forEach(s=>{if(s.targetStart)allD.push(new Date(s.targetStart));if(s.targetEnd)allD.push(new Date(s.targetEnd));});
+  if(allD.length<2){content.innerHTML='<div class="empty"><div class="empty-icon">📅</div><p>Add target dates to subjects to see the Gantt chart.</p></div>';return;}
+  const minD=new Date(Math.min(...allD));const maxD=new Date(Math.max(...allD));maxD.setDate(maxD.getDate()+14);
+  const totalDays=(maxD-minD)/86400000;
+  function pct(d){if(!d)return null;const days=(new Date(d)-minD)/86400000;return Math.max(0,Math.min(100,days/totalDays*100));}
+  const tPct=pct(today());
 
-    const today = new Date().toISOString().slice(0,10);
-    const statusClass = today > topic.deadline ? "overdue" : "completed";
+  // Month markers
+  const months=[];const mc=new Date(minD);mc.setDate(1);
+  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  while(mc<=maxD){const p=pct(mc.toISOString().slice(0,10));months.push('<span style="position:absolute;left:'+p+'%;transform:translateX(-50%);font-family:\'DM Mono\',monospace;font-size:0.62rem;color:var(--text-dim);white-space:nowrap;">'+mons[mc.getMonth()]+' '+mc.getFullYear().toString().slice(2)+'</span>');mc.setMonth(mc.getMonth()+1);}
 
-    card.innerHTML = `
-      <h3>${topic.name} 
-      <span class="${statusClass} small">(Target: ${topic.deadline})</span></h3>
-    `;
+  const phases=[{n:1,l:'Phase 1 — Part 1'},{n:2,l:'Phase 2 — Part 2'},{n:3,l:'Phase 3 — PACES'}];
+  const phaseHTML=phases.map(ph=>{
+    const ps=subjects.filter(s=>s.phase===ph.n);if(ps.length===0)return '';
+    return '<div style="margin-bottom:1.5rem;"><div style="font-family:\'DM Mono\',monospace;font-size:0.72rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">'+ph.l+'</div>'+
+    ps.map(s=>{
+      const st=calcStatus(s);
+      const bc=st==='completed'?'#3fb950':st==='delayed'?'#f85149':st==='at-risk'?'#d29922':'#58a6ff';
+      const sp=pct(s.targetStart),ep=pct(s.targetEnd);
+      const tw=ep!==null&&sp!==null?Math.max(1,ep-sp):0;
+      const asp=pct(s.actualStart||null);
+      const aep=pct(s.actualEnd||today());
+      const aw=asp!==null&&s.actualStart?Math.max(0,Math.min(100,aep)-asp):0;
+      return '<div class="gantt-row"><div class="gantt-label" title="'+s.name+'">'+s.name+'</div><div class="gantt-track">'+
+        (tPct!==null?'<div class="gantt-today-line" style="left:'+tPct+'%;"></div>':'')+
+        (sp!==null&&tw>0?'<div class="gantt-bar" style="left:'+sp+'%;width:'+tw+'%;background:'+bc+';opacity:0.25;" title="Target: '+fmt(s.targetStart)+' - '+fmt(s.targetEnd)+'"></div>':'')+
+        (asp!==null&&aw>0?'<div class="gantt-bar" style="left:'+asp+'%;width:'+aw+'%;background:'+bc+';opacity:0.9;" title="Actual progress"></div>':'')+
+        '</div><span class="pill '+st+'" style="flex-shrink:0;margin-left:0.5rem;font-size:0.65rem;">'+st.replace('-',' ')+'</span></div>';
+    }).join('')+'</div>';
+  }).join('');
 
-    topic.sections.forEach(sec => {
-      const secDiv = document.createElement("div");
-      secDiv.innerHTML = `<h4>${sec.name}</h4>`;
+  // Exam date markers
+  const examMarkers=[['part1','Part 1','var(--gold)'],['part2','Part 2','var(--blue)'],['paces','PACES','var(--green)']].map(([k,l,c])=>{
+    if(!setup[k])return '';const p=pct(setup[k]);if(p===null)return '';
+    return '<div style="position:absolute;left:'+p+'%;top:0;bottom:0;width:2px;background:'+c+';"></div><div style="position:absolute;left:'+p+'%;top:1px;transform:translateX(-50%);font-family:\'DM Mono\',monospace;font-size:0.62rem;color:'+c+';white-space:nowrap;background:var(--surface);padding:0 2px;">'+l+'</div>';
+  }).join('');
 
-      sec.resources.forEach(res => {
-        const id = topic.name + sec.name + res.name;
-        secDiv.innerHTML += `
-          <div>
-            <input type="checkbox" onchange="saveProgress('${id}')">
-            <a href="${res.link}" target="_blank">${res.name}</a>
-            <span id="${id}" class="small"></span>
-          </div>`;
-      });
-
-      card.appendChild(secDiv);
-    });
-
-    container.appendChild(card);
-  });
+  content.innerHTML='<div class="card"><div style="overflow-x:auto;"><div style="min-width:600px;">'+
+    '<div style="display:flex;gap:0.75rem;margin-bottom:0.5rem;"><div style="width:160px;flex-shrink:0;"></div><div style="flex:1;position:relative;height:22px;">'+months.join('')+(tPct!==null?'<div style="position:absolute;left:'+tPct+'%;top:0;bottom:0;width:1px;background:rgba(248,81,73,0.6);"></div>':'')+'</div></div>'+
+    phaseHTML+
+    '<div style="display:flex;gap:0.75rem;margin-top:0.5rem;"><div style="width:160px;flex-shrink:0;font-size:0.7rem;font-family:\'DM Mono\',monospace;color:var(--text-dim);">EXAM DATES</div><div style="flex:1;position:relative;height:28px;">'+examMarkers+'</div></div>'+
+    '</div></div></div><div style="font-family:\'DM Mono\',monospace;font-size:0.7rem;color:var(--text-dim);text-align:center;margin-top:0.75rem;">Faded = target · Solid = actual · Vertical line = today</div>';
 }
 
-function saveProgress(id) {
-  const date = new Date().toISOString().slice(0,10);
-  localStorage.setItem(id, date);
-  document.getElementById(id).innerText = `✔ Completed on ${date}`;
+// SETUP
+function loadSetupForm(){const s=getSetup();document.getElementById('s-name').value=s.name||'';document.getElementById('s-qual').value=s.qual||'MBBS, Cardiologist — 25 yrs';document.getElementById('s-prep-start').value=s.prepStart||'';document.getElementById('s-app-deadline').value=s.appDeadline||'';document.getElementById('s-part1').value=s.part1||'';document.getElementById('s-part2').value=s.part2||'';document.getElementById('s-paces').value=s.paces||'';document.getElementById('s-hours').value=s.hours||2.5;document.getElementById('s-centre12').value=s.centre12||'Mumbai';document.getElementById('s-centrepaces').value=s.centrePaces||'Mumbai';}
+function saveSetup(){DB.set('mrcp_setup',{name:document.getElementById('s-name').value,qual:document.getElementById('s-qual').value,prepStart:document.getElementById('s-prep-start').value,appDeadline:document.getElementById('s-app-deadline').value,part1:document.getElementById('s-part1').value,part2:document.getElementById('s-part2').value,paces:document.getElementById('s-paces').value,hours:+document.getElementById('s-hours').value,centre12:document.getElementById('s-centre12').value,centrePaces:document.getElementById('s-centrepaces').value});renderCountdown();const msg=document.getElementById('setup-msg');msg.style.color='var(--green)';msg.textContent='✓ Setup saved successfully!';setTimeout(()=>msg.textContent='',3000);}
+
+function loadDefaultSubjects(){
+  if(getSubjects().length>0&&!confirm('Add MRCP template subjects to your list? Existing subjects will be kept.'))return;
+  const s=getSetup();const p=s.prepStart||'2026-02-01';
+  function ad(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);}
+  const tmpl=[
+    {ph:1,n:'Cardiology',ts:ad(p,0),te:ad(p,18),t:['Heart Failure','Ischaemic Heart Disease','Arrhythmias','Valvular Disease','Hypertension','Cardiomyopathy']},
+    {ph:1,n:'Respiratory Medicine',ts:ad(p,18),te:ad(p,33),t:['Asthma','COPD','Pneumonia','Interstitial Lung Disease','Pleural Disease','PE']},
+    {ph:1,n:'Nephrology',ts:ad(p,33),te:ad(p,47),t:['AKI','CKD','Glomerulonephritis','Nephrotic Syndrome','Electrolyte Disorders']},
+    {ph:1,n:'Gastroenterology & Hepatology',ts:ad(p,47),te:ad(p,63),t:['IBD','Liver Cirrhosis','Hepatitis','Peptic Ulcer Disease','GI Bleeding','Pancreatitis']},
+    {ph:1,n:'Neurology',ts:ad(p,63),te:ad(p,78),t:['Stroke & TIA','Epilepsy','Parkinson\'s Disease','Multiple Sclerosis','Dementia']},
+    {ph:1,n:'Endocrinology & Diabetes',ts:ad(p,78),te:ad(p,93),t:['Diabetes Mellitus','Thyroid Disorders','Adrenal Disease','Pituitary Disorders','Calcium Metabolism']},
+    {ph:1,n:'Rheumatology',ts:ad(p,93),te:ad(p,106),t:['Rheumatoid Arthritis','SLE','Gout','Vasculitis','Spondyloarthropathies','Osteoporosis']},
+    {ph:1,n:'Haematology',ts:ad(p,106),te:ad(p,118),t:['Anaemia','Leukaemia','Lymphoma','Coagulation Disorders','Myeloma']},
+    {ph:1,n:'Infectious Diseases',ts:ad(p,90),te:ad(p,110),t:['Sepsis','HIV','TB','Meningitis','Tropical Infections']},
+    {ph:1,n:'Basic Sciences & Pharmacology',ts:ad(p,0),te:ad(p,120),t:['Drug Mechanisms','Pharmacokinetics','Genetics','Statistics & EBM','Immunology']},
+    {ph:1,n:'Dermatology & Ophthalmology',ts:ad(p,100),te:ad(p,118),t:['Skin Conditions in Medicine','Ocular Manifestations']},
+    {ph:2,n:'Clinical Management — Cardiology',ts:ad(p,125),te:ad(p,140),t:['ACS Guidelines (NICE/ESC)','Heart Failure Protocols','AF Management','Device Therapy']},
+    {ph:2,n:'Clinical Management — Respiratory',ts:ad(p,140),te:ad(p,153),t:['COPD Exacerbation','Asthma BTS Stepwise','PE Anticoagulation','NIV']},
+    {ph:2,n:'Clinical Management — Renal & GI',ts:ad(p,153),te:ad(p,170),t:['AKI NICE Guidelines','CKD Anaemia','Upper GI Bleed','IBD Management']},
+    {ph:2,n:'Data Interpretation',ts:ad(p,125),te:ad(p,177),t:['ECG Interpretation','Arterial Blood Gas','Pulmonary Function Tests','CXR Reading','Biochemistry']},
+    {ph:2,n:'Statistics & Evidence-Based Medicine',ts:ad(p,160),te:ad(p,177),t:['RCT Interpretation','Sensitivity/Specificity','NNT & NNH','Meta-analysis']},
+    {ph:3,n:'PACES Examination Technique',ts:ad(p,185),te:ad(p,225),t:['CVS Examination Script','Respiratory Exam','Abdominal Exam','Neurological Exam']},
+    {ph:3,n:'PACES History Taking',ts:ad(p,185),te:ad(p,215),t:['ICE Framework','Chest Pain History','Breathlessness History','Neurological Symptoms']},
+    {ph:3,n:'PACES Communication & Ethics',ts:ad(p,200),te:ad(p,235),t:['Breaking Bad News','Consent & Capacity','Ethical Scenarios','Patient-Centred Style']},
+    {ph:3,n:'PACES Data Interpretation',ts:ad(p,185),te:ad(p,220),t:['Complex ECGs','Chest X-Ray Cases','ABG Analysis','Spirometry','Blood Results']},
+  ];
+  const existing=getSubjects();
+  tmpl.forEach(t=>existing.push({id:uid(),phase:t.ph,name:t.n,status:'not-started',targetStart:t.ts,targetEnd:t.te,actualStart:'',actualEnd:'',notes:'',topics:t.t.map(n=>({id:uid(),name:n,status:'not-started',targetStart:'',targetEnd:'',actualStart:'',actualEnd:'',notes:''}))}));
+  saveSubjects(existing);
+  const msg=document.getElementById('setup-msg');msg.style.color='var(--green)';msg.textContent='✓ Template loaded — '+tmpl.length+' subjects added across 3 phases!';setTimeout(()=>msg.textContent='',4000);
 }
 
-renderMilestones();
-renderTopics();
+// INIT
+renderCountdown();
+renderDashboard();
 </script>
 
 </body>
