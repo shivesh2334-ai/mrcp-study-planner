@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MRCP Part 1 Study Planner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+  padding: 20px;
+}
+h1 { color: #1e3a8a; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+th {
+  background: #1e3a8a;
+  color: white;
+}
+.completed {
+  background: #d1fae5;
+}
+.delayed {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: bold;
+}
+button {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.resources a {
+  margin-right: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📘 MRCP Part 1 Study Planner</h1>
+
+<div class="resources">
+  <strong>Resources:</strong>
+  <a href="https://passmedicine.com" target="_blank">Passmedicine</a>
+  <a href="https://pastest.com" target="_blank">Pastest</a>
+  <a href="https://onexamination.com" target="_blank">BMJ OnExamination</a>
+  <a href="https://www.mrcpuk.org" target="_blank">MRCP UK</a>
+</div>
+
+<br>
+
+<table id="planner">
+<thead>
+<tr>
+  <th>Topic</th>
+  <th>Target Date</th>
+  <th>Status</th>
+  <th>Completed On</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+const topics = [
+  "Cardiology",
+  "Respiratory",
+  "Gastroenterology",
+  "Neurology",
+  "Endocrinology",
+  "Renal & Electrolytes",
+  "Hematology",
+  "Infectious Diseases",
+  "Statistics & Ethics"
+];
+
+const tbody = document.querySelector("tbody");
+
+function loadData() {
+  tbody.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("mrcpPlan")) || {};
+
+  topics.forEach(topic => {
+    const row = document.createElement("tr");
+
+    const target = data[topic]?.target || "";
+    const completed = data[topic]?.completed || "";
+    const isCompleted = !!completed;
+    const isDelayed = !isCompleted && target && new Date() > new Date(target);
+
+    if (isCompleted) row.classList.add("completed");
+    if (isDelayed) row.classList.add("delayed");
+
+    row.innerHTML = `
+      <td>${topic}</td>
+      <td><input type="date" value="${target}" onchange="setTarget('${topic}', this.value)"></td>
+      <td>${isCompleted ? "✅ Completed" : isDelayed ? "🚩 Delayed" : "⏳ Pending"}</td>
+      <td>${completed || "-"}</td>
+      <td>
+        ${!isCompleted ? `<button onclick="markComplete('${topic}')">Mark Complete</button>` : ""}
+      </td>
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+
+function setTarget(topic, date) {
+  const data = JSON.parse(localStorage.getItem("mrcpPlan")) || {};
+  data[topic] = data[topic] || {};
+  data[topic].target = date;
+  localStorage.setItem("mrcpPlan", JSON.stringify(data));
+  loadData();
+}
+
+function markComplete(topic) {
+  const data = JSON.parse(localStorage.getItem("mrcpPlan")) || {};
+  data[topic] = data[topic] || {};
+  data[topic].completed = new Date().toISOString().split("T")[0];
+  localStorage.setItem("mrcpPlan", JSON.stringify(data));
+  loadData();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
